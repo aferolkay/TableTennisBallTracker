@@ -1,16 +1,16 @@
 import cv2
 import numpy as np
+
+###### GLOBAL VARIABLES ######
+cam = cv2.VideoCapture("resources/tableTennisBall.mp4")
 prevDown = True
 prevBottom = 0
-ksize = (3,3)
 kernel = np.ones((3,3), np.uint8  )
 
-
-
+###### HELPFUL FUNCTIONS ######
 def howRound(contours):
     # TO DO :
     pass
-
 def gimmeBottom(contour):
     global prevBottom,prevDown 
     ret = 0
@@ -31,60 +31,63 @@ def gimmeBottom(contour):
     print( " prewBottom {} --> bottom {}".format(prevBottom,bottom) )
     prevDown = down
     prevBottom = bottom
-    return ret , tuple(point.reshape(1, -1)[0])
-    
-def downgrade(image,scale):
-    width = int(image.shape[1] * scale / 100)
-    height = int(image.shape[0] * scale / 100)
+    return ret , tuple(point.reshape(1, -1)[0])   
+
+def getFrame(src = cam, kernelsize = (3,3) , downScale = 50):
+    ret , frame = src.read()
+    if ret == False:
+        print("Can't get the video feed.")
+        exit()
+    frame = cv2.cvtColor(frame , cv2.COLOR_BGR2GRAY)
+    width = int(frame.shape[1] * downScale / 100)
+    height = int(frame.shape[0] * downScale / 100)
     dim = (width , height)
-    resized = cv2.resize(image , dim , interpolation = cv2.INTER_AREA)
-    return resized
+    frame = cv2.resize(src=frame , dsize=dim  , interpolation = cv2.INTER_AREA )
+    frame = cv2.blur( frame , kernelsize)
+    return frame
+
+def thresholdedDifference(frame1 , frame2 , buffer):
+    temp1 = frame2 + buffer
+    temp2 = temp1 - frame1
+    difference = temp2 - buffer
+    difference = abs(difference)
+    ret , thresholded = cv2.threshold( difference , 20 , 255 , cv2.THRESH_BINARY )
+    thresholded = thresholded.astype(np.uint8)
+    return thresholded
 
 
-cam = cv2.VideoCapture("resources/tableTennisBall2.mp4")
-ret , prevFrame = cam.read()
-prevFrame = downgrade(prevFrame , 50)
-prevFrame = cv2.cvtColor(prevFrame , cv2.COLOR_BGR2GRAY)
-prevFrame = cv2.blur( prevFrame , ksize)
-# TO DO: Resolution düşürülecek
-
+###### MAIN PART ######
+prevFrame = getFrame(src = cam)
+currentFrame = getFrame()
 buffer = np.ones( prevFrame.shape ) * 255
+thresholdedFirst = thresholdedDifference(prevFrame,currentFrame,buffer)
 
 while True:
 
-    ret , currentFrame = cam.read()
-    currentFrame = downgrade( currentFrame , 50)
-    currentFrame = cv2.cvtColor(currentFrame , cv2.COLOR_BGR2GRAY)
-    currentFrame = cv2.blur( currentFrame , ksize)
-
-    temp1 = currentFrame + buffer
-    temp2 = temp1 - prevFrame
-    difference = temp2 - buffer
-    difference = abs(difference)
-
-    ret , thresholded = cv2.threshold( difference , 20 , 255 , cv2.THRESH_BINARY )
-    thresholded = thresholded.astype(np.uint8)
-    eroded = thresholded
-    cv2.erode(thresholded,kernel=kernel,dst=eroded)
+    nextFrame = getFrame() 
+    thresholdedSecond = thresholdedDifference(currentFrame,nextFrame,buffer)
+    thresholdedFinal = thresholdedFirst & thresholdedSecond
+    
+    eroded = thresholdedFinal
+    cv2.erode(thresholdedFinal,kernel=kernel,dst=eroded)
+    
     contours , hierarchy = cv2.findContours( eroded , cv2.RETR_EXTERNAL , cv2.CHAIN_APPROX_SIMPLE)
     if len(contours) != 0:            
         biggestContour = max( contours , key = cv2.contourArea  )
-        cv2.drawContours( currentFrame, contours=biggestContour, contourIdx=-1 , color=(255,255,255) ,thickness=3)
+        cv2.drawContours( currentFrame, contours=biggestContour, contourIdx=-1 , color=(0,255,255) ,thickness=3)
         
         ret , bottomPoint = gimmeBottom(biggestContour)
         if ret == 1:
-            cv2.circle(currentFrame , bottomPoint , radius = 2 , color=(255,255,255) , thickness=-1)
-            print("detectedddd!")
-        
-## TO DO: ŞU IKI TOP ŞEKLINI DEGILDE EN YENI TOPU DETECT ETTI
-
-    
+            cv2.circle(currentFrame , bottomPoint , radius = 20 , color=(255,255,255) , thickness=-1)
+            print("detectedddd!")    
 
     cv2.imshow( "CurrentFrame" , currentFrame )
-    cv2.imshow( "thresholded" , thresholded)
+    cv2.imshow( "thresholded" , thresholdedFinal)
 
     prevFrame = currentFrame
-    if cv2.waitKey(1)  & 0xFF == 27:
+    currentFrame = nextFrame
+    thresholdedFirst = thresholdedSecond
+    if cv2.waitKey(0)  & 0xFF == 27:
         break
 
 cam.release()
