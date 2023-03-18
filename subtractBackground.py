@@ -1,15 +1,42 @@
 import cv2
 import numpy as np
+prevDown = True
+prevBottom = 0
+ksize = (3,3)
+kernel = np.ones((3,3), np.uint8  )
+
 
 
 def howRound(contours):
     # TO DO :
     pass
 
-ksize = (3,3)
-kernel = np.ones((3,3), np.uint8  )
+def gimmeBottom(contour):
+    global prevBottom,prevDown 
+    ret = 0
+    point = contour[contour[:,:,0].argmin()]
+    bottom = point[0,1]
+    
+    if prevBottom > bottom :
+        down = False
+    else :
+        down = True
+      
+    if prevDown :
+        if down == False:
+            ret = 1
+    else :
+        if down == True:
+            ret = 2
+    print( " prewBottom {} --> bottom {}".format(prevBottom,bottom) )
+    prevDown = down
+    prevBottom = bottom
+    return ret , tuple(point.reshape(1, -1)[0])
+    
 
-cam = cv2.VideoCapture("resources/tableTennisBall.mp4")
+
+
+cam = cv2.VideoCapture("resources/tableTennisBall2.mp4")
 ret , prevFrame = cam.read()
 prevFrame = cv2.cvtColor(prevFrame , cv2.COLOR_BGR2GRAY)
 prevFrame = cv2.blur( prevFrame , ksize)
@@ -36,15 +63,21 @@ while True:
     if len(contours) != 0:            
         biggestContour = max( contours , key = cv2.contourArea  )
         cv2.drawContours( currentFrame, contours=biggestContour, contourIdx=-1 , color=(255,255,255) ,thickness=3)
+        
+        ret , bottomPoint = gimmeBottom(biggestContour)
+        if ret == 1:
+            cv2.circle(currentFrame , bottomPoint , radius = 2 , color=(255,255,255) , thickness=-1)
+            print("detectedddd!")
+        
 
-    
+
     
 
     cv2.imshow( "CurrentFrame" , currentFrame )
     cv2.imshow( "thresholded" , thresholded)
 
     prevFrame = currentFrame
-    if cv2.waitKey(0) & 0xFF == 27:
+    if cv2.waitKey(1) & 0xFF == 27:
         break
 
 cam.release()
