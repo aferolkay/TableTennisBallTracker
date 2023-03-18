@@ -33,11 +33,17 @@ def gimmeBottom(contour):
     prevBottom = bottom
     return ret , tuple(point.reshape(1, -1)[0])
     
-
+def downgrade(image,scale):
+    width = int(image.shape[1] * scale / 100)
+    height = int(image.shape[0] * scale / 100)
+    dim = (width , height)
+    resized = cv2.resize(image , dim , interpolation = cv2.INTER_AREA)
+    return resized
 
 
 cam = cv2.VideoCapture("resources/tableTennisBall2.mp4")
 ret , prevFrame = cam.read()
+prevFrame = downgrade(prevFrame , 50)
 prevFrame = cv2.cvtColor(prevFrame , cv2.COLOR_BGR2GRAY)
 prevFrame = cv2.blur( prevFrame , ksize)
 # TO DO: Resolution düşürülecek
@@ -47,6 +53,7 @@ buffer = np.ones( prevFrame.shape ) * 255
 while True:
 
     ret , currentFrame = cam.read()
+    currentFrame = downgrade( currentFrame , 50)
     currentFrame = cv2.cvtColor(currentFrame , cv2.COLOR_BGR2GRAY)
     currentFrame = cv2.blur( currentFrame , ksize)
 
@@ -69,7 +76,7 @@ while True:
             cv2.circle(currentFrame , bottomPoint , radius = 2 , color=(255,255,255) , thickness=-1)
             print("detectedddd!")
         
-
+## TO DO: ŞU IKI TOP ŞEKLINI DEGILDE EN YENI TOPU DETECT ETTI
 
     
 
@@ -77,7 +84,7 @@ while True:
     cv2.imshow( "thresholded" , thresholded)
 
     prevFrame = currentFrame
-    if cv2.waitKey(1) & 0xFF == 27:
+    if cv2.waitKey(1)  & 0xFF == 27:
         break
 
 cam.release()
