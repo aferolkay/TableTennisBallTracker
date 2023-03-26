@@ -8,6 +8,9 @@ prevBottom = 0
 kernel = np.ones((3,3), np.uint8  )
 
 ###### HELPFUL FUNCTIONS ######
+def trackBall():
+    # TO DO: implement ball tracking algotihms such as cam shift and mean shift etc.
+    pass
 def howRound(contours):
     # TO DO :
     pass
@@ -23,7 +26,7 @@ def gimmeBottom(contour):
         down = True
       
     if prevDown :
-        if down == False:
+        if (down == False)  & (bottom > 65):  
             ret = 1
     else :
         if down == True:
@@ -31,9 +34,9 @@ def gimmeBottom(contour):
     print( " prewBottom {} --> bottom {}".format(prevBottom,bottom) )
     prevDown = down
     prevBottom = bottom
-    return ret , tuple(point.reshape(1, -1)[0])   
+    return ret , tuple(point.reshape(1, -1)[0])        
 
-def getFrame(src = cam, kernelsize = (3,3) , downScale = 50):
+def getFrame(src = cam, kernelsize = (3,3) , downScale = 100):
     ret , frame = src.read()
     if ret == False:
         print("Can't get the video feed.")
@@ -77,7 +80,7 @@ while True:
         cv2.drawContours( currentFrame, contours=biggestContour, contourIdx=-1 , color=(0,255,255) ,thickness=3)
         
         ret , bottomPoint = gimmeBottom(biggestContour)
-        if ret == 1:
+        if ret == 1 :
             cv2.circle(currentFrame , bottomPoint , radius = 20 , color=(255,255,255) , thickness=-1)
             print("detectedddd!")    
 
