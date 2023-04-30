@@ -2,10 +2,16 @@ import cv2
 import numpy as np
 
 ###### GLOBAL VARIABLES ######
-cam = cv2.VideoCapture("resources/tableTennisBall.mp4")
+website = "http://192.168.118.209:4747/video"
+websiteBasak = "http://192.168.118.233:4747/video"
+usb=1
+webcam=0
+file = "resources/tableTennisBall.mp4"
+
+cam = cv2.VideoCapture(1)
 prevDown = True
 prevBottom = 0
-kernel = np.ones((3,3), np.uint8  )
+kernel = np.ones((3,3), np.uint8  )  
 
 ###### HELPFUL FUNCTIONS ######
 def trackBall():
@@ -90,7 +96,7 @@ while True:
     prevFrame = currentFrame
     currentFrame = nextFrame
     thresholdedFirst = thresholdedSecond
-    if cv2.waitKey(0)  & 0xFF == 27:
+    if cv2.waitKey(1)  & 0xFF == 27:
         break
 
 cam.release()
