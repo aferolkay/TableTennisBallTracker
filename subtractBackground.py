@@ -3,23 +3,60 @@ import numpy as np
 
 ###### GLOBAL VARIABLES ######
 website = "http://192.168.118.209:4747/video"
-websiteBasak = "http://192.168.118.233:4747/video"
 usb=1
 webcam=0
 file = "resources/tableTennisBall.mp4"
 
-cam = cv2.VideoCapture(1)
+
+cam = cv2.VideoCapture(file)
 prevDown = True
 prevBottom = 0
-kernel = np.ones((3,3), np.uint8  )  
+kernel = np.ones((1,1), np.uint8  )  # for erotion
 
 ###### HELPFUL FUNCTIONS ######
 def trackBall():
     # TO DO: implement ball tracking algotihms such as cam shift and mean shift etc.
     pass
-def howRound(contours):
-    # TO DO :
-    pass
+
+def mostBallContour(contour):
+    #print("lenghththth:{}".format(len(contour)))
+    if len(contour)<3 :
+        return contour[0]  # TO DO: eğer top yoksa bile şu an yazdırıyo | yazdırmamasını sağla
+    
+    i = 0
+    while i<3 :
+        x,y,w,h = cv2.boundingRect(contour[i])
+        area = cv2.contourArea(contour[i])
+        aspect_ratio = float(w)/h
+        rect_area = w*h
+        extent = float(area)/rect_area
+        if aspect_ratio>0.4 and extent >0.4 and aspect_ratio<2 :
+            return contour[i]
+        i+=1
+    """
+    if len(contour)<3 :
+        return None
+    i = 0
+    while i<3 :
+        x,y,w,h = cv2.boundingRect(contour[i])
+        area = cv2.contourArea(contour[i])
+        aspect_ratio = float(w)/h
+        rect_area = w*h
+        extent = float(area)/rect_area
+        if aspect_ratio>0.4 and extent >0.4 and aspect_ratio<2 :
+            return contour[i]
+        i+=1
+    """
+    return contour[0]
+
+
+    x,y,w,h = cv2.boundingRect(contour)
+    area = cv2.contourArea(contour)
+    aspect_ratio = float(w)/h
+    rect_area = w*h
+    extent = float(area)/rect_area
+    print("aspect_ratio={} | extent={}".format(aspect_ratio,extent))
+
 def gimmeBottom(contour):
     global prevBottom,prevDown 
     ret = 0
@@ -37,7 +74,7 @@ def gimmeBottom(contour):
     else :
         if down == True:
             ret = 2
-    print( " prewBottom {} --> bottom {}".format(prevBottom,bottom) )
+    #print( " prevBottom {} --> bottom {}".format(prevBottom,bottom) )
     prevDown = down
     prevBottom = bottom
     return ret , tuple(point.reshape(1, -1)[0])        
@@ -60,7 +97,7 @@ def thresholdedDifference(frame1 , frame2 , buffer):
     temp2 = temp1 - frame1
     difference = temp2 - buffer
     difference = abs(difference)
-    ret , thresholded = cv2.threshold( difference , 20 , 255 , cv2.THRESH_BINARY )
+    ret , thresholded = cv2.threshold( difference , 10 , 255 , cv2.THRESH_BINARY ) # here is how you change sensitivity
     thresholded = thresholded.astype(np.uint8)
     return thresholded
 
@@ -80,24 +117,40 @@ while True:
     eroded = thresholdedFinal
     cv2.erode(thresholdedFinal,kernel=kernel,dst=eroded)
     
-    contours , hierarchy = cv2.findContours( eroded , cv2.RETR_EXTERNAL , cv2.CHAIN_APPROX_SIMPLE)
-    if len(contours) != 0:            
-        biggestContour = max( contours , key = cv2.contourArea  )
-        cv2.drawContours( currentFrame, contours=biggestContour, contourIdx=-1 , color=(0,255,255) ,thickness=3)
-        
-        ret , bottomPoint = gimmeBottom(biggestContour)
-        if ret == 1 :
-            cv2.circle(currentFrame , bottomPoint , radius = 20 , color=(255,255,255) , thickness=-1)
-            print("detectedddd!")    
+    #contours , hierarchy = cv2.findContours( eroded , cv2.RETR_EXTERNAL , cv2.CHAIN_APPROX_SIMPLE)
+    contours , hierarchy = cv2.findContours( eroded , 2 , 1)
+    contourSorted = sorted(contours, key=cv2.contourArea, reverse=True)
 
+    if len(contours) != 0:            
+        #biggestContour = max( contours , key = cv2.contourArea  )
+        #print(len(contourSorted) )
+        #biggestContour = contourSorted[0]
+        # TO DO: find the optimal contour
+        biggestContour = mostBallContour(contourSorted)
+
+    #    if biggestContour.any() != None
+    #        cv2.drawContours( currentFre, contours=biggestContour, contourIdx=-1 , color=(255,255,255) ,thickness=3)        
+    #        ret , bottomPoint = gimmeBoom(biggestContour)
+    #        if ret == 1 :
+    #            cv2.circle(currentFrame bottomPoint , radius = 20 , color=(255,255,255) , thickness=-1)
+    #    else :
+    #        print("ağla")
+
+    cv2.drawContours( currentFrame, contours=biggestContour, contourIdx=-1 , color=(255,255,255) ,thickness=3)        
+    ret , bottomPoint = gimmeBottom(biggestContour)
+    if ret == 1 :
+        cv2.circle(currentFrame , bottomPoint , radius = 20 , color=(255,255,255) , thickness=-1)
     cv2.imshow( "CurrentFrame" , currentFrame )
     cv2.imshow( "thresholded" , thresholdedFinal)
 
     prevFrame = currentFrame
     currentFrame = nextFrame
     thresholdedFirst = thresholdedSecond
-    if cv2.waitKey(1)  & 0xFF == 27:
+    if cv2.waitKey(0)  & 0xFF == 27:
         break
 
 cam.release()
 cv2.destroyAllWindows()
+
+
+
