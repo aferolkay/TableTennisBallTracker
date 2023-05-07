@@ -16,7 +16,7 @@ ap.add_argument("-i", "--image", required=True,
 args = vars(ap.parse_args())
 """
 #image = cv2.imread(args["image"])
-VideoCapture = cv2.VideoCapture("tableTennisBall.mp4")
+VideoCapture = cv2.VideoCapture("/../resources/tableTennisBall.mp4")
 
 
 while True:
@@ -27,12 +27,12 @@ while True:
 	#image = image[160:1700,130:1100]
     
 
-	resized = imutils.resize(image,width=600)
+	resized = imutils.resize(image,width)
 	ratio = image.shape[0] / float(resized.shape[0])
 
 	# convert the resized image to grayscale, blur it slightly,
 	# and threshold it
-	gray = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
+	gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 	blurred = cv2.GaussianBlur(gray, (3, 3), 0)
 	thresh = cv2.threshold(blurred, 60, 255, cv2.THRESH_BINARY)[1]
 

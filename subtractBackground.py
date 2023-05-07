@@ -2,11 +2,10 @@ import cv2
 import numpy as np
 
 ###### GLOBAL VARIABLES ######
-website = "http://192.168.118.209:4747/video"
+website = "http://192.168.137.228:4747/video"
 usb=1
 webcam=0
 file = "resources/tableTennisBall.mp4"
-
 
 cam = cv2.VideoCapture(file)
 prevDown = True
@@ -19,22 +18,9 @@ def trackBall():
     pass
 
 def mostBallContour(contour):
-    #print("lenghththth:{}".format(len(contour)))
+    #print("Length of Detected Contours:{}".format(len(contour)))
     if len(contour)<3 :
-        return contour[0]  # TO DO: eğer top yoksa bile şu an yazdırıyo | yazdırmamasını sağla
-    
-    i = 0
-    while i<3 :
-        x,y,w,h = cv2.boundingRect(contour[i])
-        area = cv2.contourArea(contour[i])
-        aspect_ratio = float(w)/h
-        rect_area = w*h
-        extent = float(area)/rect_area
-        if aspect_ratio>0.4 and extent >0.4 and aspect_ratio<2 :
-            return contour[i]
-        i+=1
-    """
-    if len(contour)<3 :
+        #return contour[0]  # TO DO: eğer top yoksa bile şu an yazdırıyo | yazdırmamasını sağla
         return None
     i = 0
     while i<3 :
@@ -46,16 +32,13 @@ def mostBallContour(contour):
         if aspect_ratio>0.4 and extent >0.4 and aspect_ratio<2 :
             return contour[i]
         i+=1
-    """
-    return contour[0]
+    
+    #print("aspect_ratio={} | extent={}".format(aspect_ratio,extent))
+    #return contour[0]
+    return None
 
 
-    x,y,w,h = cv2.boundingRect(contour)
-    area = cv2.contourArea(contour)
-    aspect_ratio = float(w)/h
-    rect_area = w*h
-    extent = float(area)/rect_area
-    print("aspect_ratio={} | extent={}".format(aspect_ratio,extent))
+    
 
 def gimmeBottom(contour):
     global prevBottom,prevDown 
@@ -97,7 +80,7 @@ def thresholdedDifference(frame1 , frame2 , buffer):
     temp2 = temp1 - frame1
     difference = temp2 - buffer
     difference = abs(difference)
-    ret , thresholded = cv2.threshold( difference , 10 , 255 , cv2.THRESH_BINARY ) # here is how you change sensitivity
+    ret , thresholded = cv2.threshold( difference , 5 , 255 , cv2.THRESH_BINARY ) # here is how you change sensitivity
     thresholded = thresholded.astype(np.uint8)
     return thresholded
 
@@ -122,33 +105,35 @@ while True:
     contourSorted = sorted(contours, key=cv2.contourArea, reverse=True)
 
     if len(contours) != 0:            
-        #biggestContour = max( contours , key = cv2.contourArea  )
-        #print(len(contourSorted) )
-        #biggestContour = contourSorted[0]
         # TO DO: find the optimal contour
         biggestContour = mostBallContour(contourSorted)
-
-    #    if biggestContour.any() != None
-    #        cv2.drawContours( currentFre, contours=biggestContour, contourIdx=-1 , color=(255,255,255) ,thickness=3)        
-    #        ret , bottomPoint = gimmeBoom(biggestContour)
-    #        if ret == 1 :
-    #            cv2.circle(currentFrame bottomPoint , radius = 20 , color=(255,255,255) , thickness=-1)
-    #    else :
-    #        print("ağla")
-
-    cv2.drawContours( currentFrame, contours=biggestContour, contourIdx=-1 , color=(255,255,255) ,thickness=3)        
-    ret , bottomPoint = gimmeBottom(biggestContour)
-    if ret == 1 :
-        cv2.circle(currentFrame , bottomPoint , radius = 20 , color=(255,255,255) , thickness=-1)
+    """
+    if biggestContour != None :
+        cv2.drawContours( currentFrame, contours=biggestContour, contourIdx=-1 , color=(255,255,255) ,thickness=3)        
+        ret , bottomPoint = gimmeBottom(biggestContour)
+        if ret == 1 :
+            cv2.circle(currentFrame, bottomPoint , radius = 20 , color=(255,255,255) , thickness=-1)
+    else :
+        print("ağla")
+    """
+    try:
+        if biggestContour == None :
+            print("no detection")
+            
+    except:
+        print("ov yeah detection")
+        cv2.drawContours( currentFrame, contours=biggestContour, contourIdx=-1 , color=(255,255,255) ,thickness=3)        
+        ret , bottomPoint = gimmeBottom(biggestContour)
+        if ret == 1 :
+            cv2.circle(currentFrame, bottomPoint, radius = 20 , color=(255,255,255) , thickness=-1)
+    
     cv2.imshow( "CurrentFrame" , currentFrame )
     cv2.imshow( "thresholded" , thresholdedFinal)
-
     prevFrame = currentFrame
     currentFrame = nextFrame
     thresholdedFirst = thresholdedSecond
-    if cv2.waitKey(0)  & 0xFF == 27:
+    if cv2.waitKey(1)  & 0xFF == 27:
         break
-
 cam.release()
 cv2.destroyAllWindows()
 
