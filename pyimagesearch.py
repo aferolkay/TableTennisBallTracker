@@ -1,4 +1,4 @@
-#rınnerCode python pyimagesearch.py --video tableTennisBall.mp4 --> 250 frame
+#rınnerCode python pyimagesearch.py --video resources/tableTennisBall.mp4 --> 250 frame
 # import the necessary packages
 from collections import deque
 from imutils.video import VideoStream
@@ -42,7 +42,7 @@ if not args.get("video", False):
 else:
 	vs = cv2.VideoCapture(args["video"])
 # allow the camera or video file to warm up
-time.sleep(2.0)
+time.sleep(1.0)
 
 # keep looping
 while True:
@@ -113,7 +113,8 @@ while True:
 		# draw the connecting lines
         thickness = int(np.sqrt(args["buffer"] / float(i + 1)) * 1) #2.5
         cv2.line(frame, pts[i - 1], pts[i], (0, 0, 255), thickness)
-	# show the frame to our screen
+	
+    # show the frame to our screen
     cv2.imshow("Frame", frame)
     key = cv2.waitKey(100) & 0xFF
 	# if the 'q' key is pressed, stop the loop

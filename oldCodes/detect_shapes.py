@@ -16,19 +16,19 @@ ap.add_argument("-i", "--image", required=True,
 args = vars(ap.parse_args())
 """
 #image = cv2.imread(args["image"])
-VideoCapture = cv2.VideoCapture("/../resources/tableTennisBall.mp4")
+VideoCapture = cv2.VideoCapture("resources/tableTennisBall.mp4")
 
 
 while True:
 	# load the image and resize it to a smaller factor so that
 	# the shapes can be approximated better
 	ret, image = VideoCapture.read()  
-	
+	print(ret)
 	#image = image[160:1700,130:1100]
     
 
-	resized = imutils.resize(image,width)
-	ratio = image.shape[0] / float(resized.shape[0])
+	#resized = imutils.resize(image,width)
+	#ratio = image.shape[0] / float(resized.shape[0])
 
 	# convert the resized image to grayscale, blur it slightly,
 	# and threshold it

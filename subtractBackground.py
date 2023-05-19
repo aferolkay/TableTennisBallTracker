@@ -1,16 +1,38 @@
 import cv2
 import numpy as np
+from collections import deque
+import globalVariable as g
 
-###### GLOBAL VARIABLES ######
-website = "http://192.168.137.228:4747/video"
-usb=1
-webcam=0
-file = "resources/tableTennisBall.mp4"
 
-cam = cv2.VideoCapture(file)
-prevDown = True
-prevBottom = 0
-kernel = np.ones((1,1), np.uint8  )  # for erotion
+
+
+
+
+def initImageProcessing():
+    ###### GLOBAL VARIABLES ######
+    global website
+    global usb
+    global webcam
+    global file
+    global bufferSize
+    global cam
+    global prevDown
+    global prevBottom
+    global kernel
+    global pts
+
+    website = "http://192.168.137.228:4747/video"
+    usb=1
+    webcam=0
+    file = "resources/tableTennisBall.mp4"
+    bufferSize = 20
+
+    cam = cv2.VideoCapture(file)
+    prevDown = True
+    prevBottom = 0
+    kernel = np.ones((1,1), np.uint8  )  # for erotion
+    pts = deque(maxlen=bufferSize)  # to draw connections between balls
+
 
 ###### HELPFUL FUNCTIONS ######
 def trackBall():
@@ -37,9 +59,6 @@ def mostBallContour(contour):
     #return contour[0]
     return None
 
-
-    
-
 def gimmeBottom(contour):
     global prevBottom,prevDown 
     ret = 0
@@ -62,9 +81,13 @@ def gimmeBottom(contour):
     prevBottom = bottom
     return ret , tuple(point.reshape(1, -1)[0])        
 
-def getFrame(src = cam, kernelsize = (3,3) , downScale = 100):
+def getFrame(src, kernelsize = (3,3) , downScale = 100,loop = 0):
     ret , frame = src.read()
     if ret == False:
+        if loop :
+            src.set(cv2.CAP_PROP_POS_FRAMES, 0)
+            frame =  getFrame(src = src)
+            return frame
         print("Can't get the video feed.")
         exit()
     frame = cv2.cvtColor(frame , cv2.COLOR_BGR2GRAY)
@@ -80,62 +103,100 @@ def thresholdedDifference(frame1 , frame2 , buffer):
     temp2 = temp1 - frame1
     difference = temp2 - buffer
     difference = abs(difference)
-    ret , thresholded = cv2.threshold( difference , 5 , 255 , cv2.THRESH_BINARY ) # here is how you change sensitivity
+    ret , thresholded = cv2.threshold( difference , 20 , 255 , cv2.THRESH_BINARY ) # here is how you change sensitivity
     thresholded = thresholded.astype(np.uint8)
     return thresholded
 
-
-###### MAIN PART ######
-prevFrame = getFrame(src = cam)
-currentFrame = getFrame()
-buffer = np.ones( prevFrame.shape ) * 255
-thresholdedFirst = thresholdedDifference(prevFrame,currentFrame,buffer)
-
-while True:
-
-    nextFrame = getFrame() 
-    thresholdedSecond = thresholdedDifference(currentFrame,nextFrame,buffer)
-    thresholdedFinal = thresholdedFirst & thresholdedSecond
+def imageProcessing():
+    global website
+    global usb
+    global webcam
+    global file
+    global bufferSize
+    global cam
+    global prevDown
+    global prevBottom
+    global kernel
+    global pts
     
-    eroded = thresholdedFinal
-    cv2.erode(thresholdedFinal,kernel=kernel,dst=eroded)
-    
-    #contours , hierarchy = cv2.findContours( eroded , cv2.RETR_EXTERNAL , cv2.CHAIN_APPROX_SIMPLE)
-    contours , hierarchy = cv2.findContours( eroded , 2 , 1)
-    contourSorted = sorted(contours, key=cv2.contourArea, reverse=True)
 
-    if len(contours) != 0:            
-        # TO DO: find the optimal contour
-        biggestContour = mostBallContour(contourSorted)
-    """
-    if biggestContour != None :
-        cv2.drawContours( currentFrame, contours=biggestContour, contourIdx=-1 , color=(255,255,255) ,thickness=3)        
-        ret , bottomPoint = gimmeBottom(biggestContour)
-        if ret == 1 :
-            cv2.circle(currentFrame, bottomPoint , radius = 20 , color=(255,255,255) , thickness=-1)
-    else :
-        print("ağla")
-    """
-    try:
-        if biggestContour == None :
-            print("no detection")
+    ###### MAIN PART ######
+    prevFrame = getFrame(src = cam)
+    currentFrame = getFrame(src = cam)
+    buffer = np.ones( prevFrame.shape ) * 255
+    thresholdedFirst = thresholdedDifference(prevFrame,currentFrame,buffer)
+
+    while True:
+        nextFrame = getFrame(src = cam , loop = 1) 
+        thresholdedSecond = thresholdedDifference(currentFrame,nextFrame,buffer)
+        thresholdedFinal = thresholdedFirst & thresholdedSecond
+        
+        eroded = thresholdedFinal
+        cv2.erode(thresholdedFinal,kernel=kernel,dst=eroded)
+        
+        #contours , hierarchy = cv2.findContours( eroded , cv2.RETR_EXTERNAL , cv2.CHAIN_APPROX_SIMPLE)
+        contours , hierarchy = cv2.findContours( eroded , 2 , 1)
+        contourSorted = sorted(contours, key=cv2.contourArea, reverse=True)
+
+        if len(contours) != 0:            
+            # TO DO: find the optimal contour
+            biggestContour = mostBallContour(contourSorted)
+        
+        try:
+            if biggestContour == None :
+                #print("no detection")
+                pts.appendleft(None)
             
-    except:
-        print("ov yeah detection")
-        cv2.drawContours( currentFrame, contours=biggestContour, contourIdx=-1 , color=(255,255,255) ,thickness=3)        
-        ret , bottomPoint = gimmeBottom(biggestContour)
-        if ret == 1 :
-            cv2.circle(currentFrame, bottomPoint, radius = 20 , color=(255,255,255) , thickness=-1)
-    
-    cv2.imshow( "CurrentFrame" , currentFrame )
-    cv2.imshow( "thresholded" , thresholdedFinal)
-    prevFrame = currentFrame
-    currentFrame = nextFrame
-    thresholdedFirst = thresholdedSecond
-    if cv2.waitKey(1)  & 0xFF == 27:
-        break
-cam.release()
-cv2.destroyAllWindows()
+        except:
+            #print("ov yeah detection")
+            
+            # to calculate the center
+            M = cv2.moments(biggestContour)
+            center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
+            pts.appendleft(center)
+            # calclulate sender ended
+
+            cv2.drawContours( currentFrame, contours=biggestContour, contourIdx=-1 , color=(255,255,255) ,thickness=3)        
+            ret , bottomPoint = gimmeBottom(biggestContour)
+            if ret == 1 :
+                cv2.circle(currentFrame, bottomPoint, radius = 20 , color=(255,255,255) , thickness=-1)
+                x=bottomPoint[0] // 5
+                y=bottomPoint[1] // 5
+                cursorMatrix = np.array([x*0+1, x, y, x**2, x**2*y, x**2*y**2, y**2, x*y**2, x*y],dtype=np.int64).T
+                xLocation = int(np.matmul( g.coefficientX , cursorMatrix ))
+                yLocation = int(np.matmul( g.coefficientY , cursorMatrix ))
+                if yLocation > 165 :
+                    print("Başarılı:{},{}".format(xLocation,yLocation))
+                else :
+                    print("Başarısız:{},{}".format(xLocation,yLocation))
+                    
+        
+                    
+        
+        # loop over the set of tracked points
+        for i in range(1, len(pts)):
+            # if either of the tracked points are None, ignore
+            # them
+            if pts[i - 1] is None or pts[i] is None:
+                continue
+            # otherwise, compute the thickness of the line and
+            # draw the connecting lines
+            thickness = int(np.sqrt(bufferSize / float(i + 1)) * 2.5 ) #2.5
+            cv2.line(currentFrame, pts[i - 1], pts[i], (255, 255, 255), thickness)
+        
+        
+        
+        
+        
+        cv2.imshow( "CurrentFrame" , currentFrame )
+        cv2.imshow( "thresholded" , thresholdedFinal)
+        prevFrame = currentFrame
+        currentFrame = nextFrame
+        thresholdedFirst = thresholdedSecond
+        if cv2.waitKey(1)  & 0xFF == 27:
+            break
+    cam.release()
+    cv2.destroyAllWindows()
 
 
 
