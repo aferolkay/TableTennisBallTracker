@@ -11,9 +11,8 @@ import subtractBackground
 
 
 
-#client.clientInit('192.168.243.220',6002)
-
-measureTable.initCalibration()
-measureTable.calibrate()
+client.clientInit('169.254.4.12',6002)
+#measureTable.initCalibration()
+#measureTable.calibrate()
 subtractBackground.initImageProcessing()
-subtractBackground.imageProcessing()
+subtractBackground.imageProcessing(communicate=1,playrate=100, pixel_cm=0)

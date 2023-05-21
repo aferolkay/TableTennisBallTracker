@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 from collections import deque
 import globalVariable as g
-
+import client
 
 
 
@@ -107,7 +107,7 @@ def thresholdedDifference(frame1 , frame2 , buffer):
     thresholded = thresholded.astype(np.uint8)
     return thresholded
 
-def imageProcessing():
+def imageProcessing(communicate = 0, playrate=1 , pixel_cm = 1):
     global website
     global usb
     global webcam
@@ -162,14 +162,21 @@ def imageProcessing():
                 cv2.circle(currentFrame, bottomPoint, radius = 20 , color=(255,255,255) , thickness=-1)
                 x=bottomPoint[0] // 5
                 y=bottomPoint[1] // 5
-                cursorMatrix = np.array([x*0+1, x, y, x**2, x**2*y, x**2*y**2, y**2, x*y**2, x*y],dtype=np.int64).T
-                xLocation = int(np.matmul( g.coefficientX , cursorMatrix ))
-                yLocation = int(np.matmul( g.coefficientY , cursorMatrix ))
+                if pixel_cm :
+                    cursorMatrix = np.array([x*0+1, x, y, x**2, x**2*y, x**2*y**2, y**2, x*y**2, x*y],dtype=np.int64).T
+                    xLocation = int(np.matmul( g.coefficientX , cursorMatrix ))
+                    yLocation = int(np.matmul( g.coefficientY , cursorMatrix ))
+                else:
+                    xLocation = x
+                    yLocation = y
                 if yLocation > 165 :
                     print("Başarılı:{},{}".format(xLocation,yLocation))
+                    if communicate:
+                        client.sendMessage("Başarılı:{},{}".format(xLocation,yLocation))
                 else :
                     print("Başarısız:{},{}".format(xLocation,yLocation))
-                    
+                    if communicate:
+                        client.sendMessage("Başarısız:{},{}".format(xLocation,yLocation))
         
                     
         
@@ -193,7 +200,7 @@ def imageProcessing():
         prevFrame = currentFrame
         currentFrame = nextFrame
         thresholdedFirst = thresholdedSecond
-        if cv2.waitKey(1)  & 0xFF == 27:
+        if cv2.waitKey(playrate)  & 0xFF == 27:
             break
     cam.release()
     cv2.destroyAllWindows()

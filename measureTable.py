@@ -52,12 +52,12 @@ def gradientDescent( pts ):
     B = Zx.flatten()
     C = Zy.flatten()
 
-    coeffx, r, rank, s = np.linalg.lstsq(A, B)
+    coeffx, r, rank, s = np.linalg.lstsq(A, B )
     coeffy, r, rank, s = np.linalg.lstsq(A, C)
 
     return coeffx,coeffy
 
-def calibrate():
+def calibrate(test = 0):
 
     cv2.namedWindow(winname="Calibrate")
     cv2.setMouseCallback("Calibrate",getPixelInfo)
@@ -84,24 +84,24 @@ def calibrate():
             break
     g.coefficientX,g.coefficientY = gradientDescent(g.keyPts) 
     cam.release()
-    #cv2.destroyAllWindows()
+    
+    if test :
+        # TEST WHETHER CALCULATIONS ARE CORRECT
+        cam = cv2.VideoCapture("resources/tableTennisBall.mp4")
+        ret, frame = cam.read()
+        while True:
+            X = g.lastCursor[0]//5
+            Y = g.lastCursor[1]//5
+            cursorMatrix = np.array([X*0+1, X, Y, X**2, X**2*Y, X**2*Y**2, Y**2, X*Y**2, X*Y]).T
+            xLocation = np.matmul( g.coefficientX , cursorMatrix )
+            yLocation = np.matmul( g.coefficientY , cursorMatrix )
+            cv2.rectangle( img=frame , pt1=(10,10) , pt2=(600,30), color = (255,255,255), thickness = 30 )  
+            cv2.putText(img=frame , text= str(int(xLocation))+","+str(int(yLocation))      ,org=(10,30),fontFace=cv2.FONT_HERSHEY_TRIPLEX, fontScale=1, color=(0, 0, 0),thickness=1)
 
-    # TEST WHETHER CALCULATIONS ARE CORRECT
-    cam = cv2.VideoCapture("resources/tableTennisBall.mp4")
-    ret, frame = cam.read()
-    while True:
-        X = g.lastCursor[0]//5
-        Y = g.lastCursor[1]//5
-        cursorMatrix = np.array([X*0+1, X, Y, X**2, X**2*Y, X**2*Y**2, Y**2, X*Y**2, X*Y]).T
-        xLocation = np.matmul( g.coefficientX , cursorMatrix )
-        yLocation = np.matmul( g.coefficientY , cursorMatrix )
-        cv2.rectangle( img=frame , pt1=(10,10) , pt2=(600,30), color = (255,255,255), thickness = 30 )  
-        cv2.putText(img=frame , text= str(int(xLocation))+","+str(int(yLocation))      ,org=(10,30),fontFace=cv2.FONT_HERSHEY_TRIPLEX, fontScale=1, color=(0, 0, 0),thickness=1)
-
-        cv2.imshow("Calibrate",frame)
-        if cv2.waitKey(10)  & 0xFF == 27:
-            break
-
+            cv2.imshow("Calibrate",frame)
+            if cv2.waitKey(10)  & 0xFF == 27:
+                break
+    cv2.destroyAllWindows()
 
 
 
