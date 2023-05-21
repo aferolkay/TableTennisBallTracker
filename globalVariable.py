@@ -12,12 +12,15 @@ coefficientY = 0
 cam = 0
 frame = 0
 
-website = 0
-usb=0
-webcam=0
-file = 0
-bufferSize = 0
 prevDown = 0
 prevBottom = 0
 kernel = 0
 pts = 0
+
+
+website = "http://192.168.137.188:4747/video"
+usb=1
+webcam=0
+file = "resources/tableTennisBall.mp4"
+bufferSize = 20
+camSource = file

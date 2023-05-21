@@ -36,8 +36,8 @@ def checkSync():
 
 
 # Create serial connection
-#ser = serial.Serial('/dev/ttyUSB0', 9600, timeout=1)
-#ser.reset_input_buffer()
+ser = serial.Serial('/dev/ttyUSB0', 9600, timeout=1)
+ser.reset_input_buffer()
 
 
 
@@ -90,7 +90,7 @@ while True:
 
 		# Continue with other tasks
 		# ...
-		"""
+		
 		if ser.in_waiting > 0:
 	
 			vibrationFlag = 1
@@ -98,7 +98,7 @@ while True:
 			line = ser.readline().decode('utf-8').rstrip()
 			print(line)
 			checkSync()
-		"""
+		
 
 	# Close the client socket
 	client_socket.close()

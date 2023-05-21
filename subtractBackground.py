@@ -21,17 +21,13 @@ def initImageProcessing():
     global kernel
     global pts
 
-    website = "http://192.168.137.228:4747/video"
-    usb=1
-    webcam=0
-    file = "resources/tableTennisBall.mp4"
-    bufferSize = 20
+    
 
-    cam = cv2.VideoCapture(file)
+    cam = cv2.VideoCapture(g.camSource)
     prevDown = True
     prevBottom = 0
     kernel = np.ones((1,1), np.uint8  )  # for erotion
-    pts = deque(maxlen=bufferSize)  # to draw connections between balls
+    pts = deque(maxlen=g.bufferSize)  # to draw connections between balls
 
 
 ###### HELPFUL FUNCTIONS ######
@@ -121,6 +117,7 @@ def imageProcessing(communicate = 0, playrate=1 , pixel_cm = 1):
     
 
     ###### MAIN PART ######
+    biggestContour = 0
     prevFrame = getFrame(src = cam)
     currentFrame = getFrame(src = cam)
     buffer = np.ones( prevFrame.shape ) * 255
@@ -188,7 +185,7 @@ def imageProcessing(communicate = 0, playrate=1 , pixel_cm = 1):
                 continue
             # otherwise, compute the thickness of the line and
             # draw the connecting lines
-            thickness = int(np.sqrt(bufferSize / float(i + 1)) * 2.5 ) #2.5
+            thickness = int(np.sqrt(g.bufferSize / float(i + 1)) * 2.5 ) #2.5
             cv2.line(currentFrame, pts[i - 1], pts[i], (255, 255, 255), thickness)
         
         

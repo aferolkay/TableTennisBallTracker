@@ -62,7 +62,7 @@ def calibrate(test = 0):
     cv2.namedWindow(winname="Calibrate")
     cv2.setMouseCallback("Calibrate",getPixelInfo)
 
-    cam = cv2.VideoCapture("resources/tableTennisBall.mp4")
+    cam = cv2.VideoCapture(g.camSource)
     ret, frame = cam.read()
     if ret == 0:
         print("Can't get the feed")
@@ -87,7 +87,7 @@ def calibrate(test = 0):
     
     if test :
         # TEST WHETHER CALCULATIONS ARE CORRECT
-        cam = cv2.VideoCapture("resources/tableTennisBall.mp4")
+        cam = cv2.VideoCapture(g.camSource)
         ret, frame = cam.read()
         while True:
             X = g.lastCursor[0]//5

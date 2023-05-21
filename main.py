@@ -1,18 +1,15 @@
-#from globalVariable import*
-#from client import*
-#from measureTable import*
-#from subtractBackground import *
-
-import globalVariable
+import globalVariable as g
 import client 
 import measureTable 
 import subtractBackground 
+g.website = "http://144.122.177.36:4747/video"
+
+g.camSource = g.website
 
 
 
-
-client.clientInit('169.254.4.12',6002)
+client.clientInit('192.168.108.220',6002)
 #measureTable.initCalibration()
 #measureTable.calibrate()
 subtractBackground.initImageProcessing()
-subtractBackground.imageProcessing(communicate=1,playrate=100, pixel_cm=0)
+subtractBackground.imageProcessing(communicate=1,playrate=1, pixel_cm=0)
