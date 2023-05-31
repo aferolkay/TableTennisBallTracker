@@ -21,17 +21,13 @@ def initImageProcessing():
     global kernel
     global pts
 
-    website = "http://192.168.137.228:4747/video"
-    usb=1
-    webcam=0
-    file = "resources/tableTennisBall.mp4"
-    bufferSize = 20
+    
 
-    cam = cv2.VideoCapture(file)
+    cam = cv2.VideoCapture(g.camSource)
     prevDown = True
     prevBottom = 0
     kernel = np.ones((1,1), np.uint8  )  # for erotion
-    pts = deque(maxlen=bufferSize)  # to draw connections between balls
+    pts = deque(maxlen=g.bufferSize)  # to draw connections between balls
 
 
 ###### HELPFUL FUNCTIONS ######
@@ -121,6 +117,7 @@ def imageProcessing(communicate = 0, playrate=1 , pixel_cm = 1):
     
 
     ###### MAIN PART ######
+    biggestContour = 0
     prevFrame = getFrame(src = cam)
     currentFrame = getFrame(src = cam)
     buffer = np.ones( prevFrame.shape ) * 255
@@ -160,15 +157,23 @@ def imageProcessing(communicate = 0, playrate=1 , pixel_cm = 1):
             ret , bottomPoint = gimmeBottom(biggestContour)
             if ret == 1 :
                 cv2.circle(currentFrame, bottomPoint, radius = 20 , color=(255,255,255) , thickness=-1)
-                x=bottomPoint[0] // 5
-                y=bottomPoint[1] // 5
+                x=bottomPoint[0]//5 
+                y=bottomPoint[1]//5  
+
+                # TO DO: detection'dan önceki pts seç
+                    #j = 1
+                    #while(pts[j] == None):
+                    #    j+=1
+                    #x = pts[j][0] // 5
+                    #y = pts[j][1] // 5
+                
                 if pixel_cm :
-                    cursorMatrix = np.array([x*0+1, x, y, x**2, x**2*y, x**2*y**2, y**2, x*y**2, x*y],dtype=np.int64).T
+                    cursorMatrix = np.array([x*0+1, x, y, x**2, x**2*y, x**2*y**2, y**2, x*y**2, x*y]).T
                     xLocation = int(np.matmul( g.coefficientX , cursorMatrix ))
                     yLocation = int(np.matmul( g.coefficientY , cursorMatrix ))
                 else:
-                    xLocation = x
-                    yLocation = y
+                    xLocation = x*5
+                    yLocation = y*5
                 if yLocation > 165 :
                     print("Başarılı:{},{}".format(xLocation,yLocation))
                     if communicate:
@@ -188,7 +193,7 @@ def imageProcessing(communicate = 0, playrate=1 , pixel_cm = 1):
                 continue
             # otherwise, compute the thickness of the line and
             # draw the connecting lines
-            thickness = int(np.sqrt(bufferSize / float(i + 1)) * 2.5 ) #2.5
+            thickness = int(np.sqrt(g.bufferSize / float(i + 1)) * 2.5 ) #2.5
             cv2.line(currentFrame, pts[i - 1], pts[i], (255, 255, 255), thickness)
         
         

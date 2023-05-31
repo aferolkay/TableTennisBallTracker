@@ -3,8 +3,6 @@ import cv2
 import numpy as np
 import globalVariable as g
 
-
-
 def initCalibration():
     # TO DO: automaticaly calibrate the table with line detection algorithms in the future
     g.keyPoints = {
@@ -22,7 +20,6 @@ def initCalibration():
     g.keyPts = np.zeros((8,2))
     g.iterator = 0
     g.lastCursor = (0,0)
-
 
 def getPixelInfo(event,x,y,flags,param):
     if g.iterator == 8:
@@ -57,12 +54,12 @@ def gradientDescent( pts ):
 
     return coeffx,coeffy
 
-def calibrate(test = 0):
+def calibrate(test = 1):
 
     cv2.namedWindow(winname="Calibrate")
     cv2.setMouseCallback("Calibrate",getPixelInfo)
 
-    cam = cv2.VideoCapture("resources/tableTennisBall.mp4")
+    cam = cv2.VideoCapture(g.camSource)
     ret, frame = cam.read()
     if ret == 0:
         print("Can't get the feed")
@@ -87,7 +84,7 @@ def calibrate(test = 0):
     
     if test :
         # TEST WHETHER CALCULATIONS ARE CORRECT
-        cam = cv2.VideoCapture("resources/tableTennisBall.mp4")
+        cam = cv2.VideoCapture(g.camSource)
         ret, frame = cam.read()
         while True:
             X = g.lastCursor[0]//5
@@ -105,6 +102,32 @@ def calibrate(test = 0):
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 """
 # TEST WHETHER CALCULATIONS ARE CORRECT
 ret, frame = cam.read()
@@ -115,7 +138,7 @@ while False:
     xLocation = np.matmul( coefficientX , cursorMatrix )
     yLocation = np.matmul( coefficientY , cursorMatrix )
     cv2.rectangle( img=frame , pt1=(10,10) , pt2=(600,30), color = (255,255,255), thickness = 30 )  
-    cv2.putText(img=frame , text= str(int(xLocation))+","+str(int(yLocation))      ,org=(10,30),fontFace=cv2.FONT_HERSHEY_TRIPLEX, fontScale=1, color=(0, 0, 0),thickness=1)
+    cv2.putText(img=frame , text= str(int(xLocation))+","+str(int(yLocation)) ,org=(10,30),fontFace=cv2.FONT_HERSHEY_TRIPLEX, fontScale=1, color=(0, 0, 0),thickness=1)
 
     cv2.imshow("Calibrate",frame)
     if cv2.waitKey(10)  & 0xFF == 27:
