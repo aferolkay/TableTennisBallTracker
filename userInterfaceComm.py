@@ -46,7 +46,11 @@ def findIP( clients , MAC="8c:c6:81:3b:c9:87"):
 
 def connectToUserInterface(hostname):
 	client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	client_socket.connect((hostname,8080))
+	try:
+		client_socket.connect((hostname,8080))
+	except :
+		print("User Interface - TrainingBuddy bağlantısı kurulamadı")
+		return None
 	client_socket.setblocking(0)
 	return client_socket
 
@@ -71,7 +75,9 @@ def afer_computer_ip():
 	return afer_computer_ip
 
 def user_Interface_Thread():
-	connection = connectToUserInterface(afer_computer_ip())
+	connection = None
+	while connection == None:
+		connection = connectToUserInterface(afer_computer_ip())
 	print("Connection to userInterface has been established...")
 	while True:
 		data = readUserInterface(connection)
