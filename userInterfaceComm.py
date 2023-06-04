@@ -75,7 +75,7 @@ def afer_computer_ip():
 	return afer_computer_ip
 
 def user_Interface_Thread():
-	timeout = 10;
+	timeout = 10
 	while 1:
 		connection = None
 		while connection == None:
@@ -85,12 +85,23 @@ def user_Interface_Thread():
 		
 		while True:
 			data = readUserInterface(connection)
-			elapsed_time = time.time() - checkTime;
+			elapsed_time = time.time() - checkTime
 			if data != None:
 				if "InterfaceON" in data:
-					checkTime = time.time();
-				print(data)
-			
+					checkTime = time.time()
+				if "]" in data:
+					lastIndex = data.rindex("]")
+					lastCommand = data[lastIndex-15:]
+					print(lastCommand)
+					spin = int(lastCommand[2])
+					freq = int(lastCommand[4])
+					speed = int(lastCommand[6])
+					direction = int(lastCommand[8])
+					lauchAngle = int(lastCommand[10])
+					opMode = int(lastCommand[12])
+					isRandom = int(lastCommand[14]) 
+					print(speed)
+					
 			if elapsed_time > timeout:
 				print("Timeout Occured!, possible connection lost.")
 				break

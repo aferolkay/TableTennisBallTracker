@@ -29,7 +29,6 @@ def initImageProcessing():
     kernel = np.ones((1,1), np.uint8  )  # for erotion
     pts = deque(maxlen=g.bufferSize)  # to draw connections between balls
 
-
 ###### HELPFUL FUNCTIONS ######
 def trackBall():
     # TO DO: implement ball tracking algotihms such as cam shift and mean shift etc.
@@ -174,15 +173,18 @@ def imageProcessing(communicate = 0, playrate=1 , pixel_cm = 1):
                 else:
                     xLocation = x*5
                     yLocation = y*5
+
                 if yLocation > 165 :
-                    print("Başarılı:{},{}".format(xLocation,yLocation))
-                    if communicate:
-                        client.sendMessage("Başarılı:{},{}".format(xLocation,yLocation))
+                    message = "Başarılı:{},{}".format(xLocation,yLocation)
                 else :
-                    print("Başarısız:{},{}".format(xLocation,yLocation))
-                    if communicate:
-                        client.sendMessage("Başarısız:{},{}".format(xLocation,yLocation))
-        
+                    message = "Başarısız:{},{}".format(xLocation,yLocation)
+                print(message)
+
+                if communicate:
+                    if g.raspberrySocket != None:
+                        g.raspberrySocket = client.sendMessage(g.raspberrySocket,message)
+                    if g.interfaceSocket != None:
+                        g.interfaceSocket = client.sendMessage(g.interfaceSocket,message)
                     
         
         # loop over the set of tracked points
