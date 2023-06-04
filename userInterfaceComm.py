@@ -75,15 +75,28 @@ def afer_computer_ip():
 	return afer_computer_ip
 
 def user_Interface_Thread():
-	connection = None
-	while connection == None:
-		connection = connectToUserInterface(afer_computer_ip())
-	print("Connection to userInterface has been established...")
-	while True:
-		data = readUserInterface(connection)
-		if data != None:
-			print(data)
-		time.sleep(1)
-		## DO OTHER STUFF HERE
+	timeout = 10;
+	while 1:
+		connection = None
+		while connection == None:
+			connection = connectToUserInterface(afer_computer_ip())
+		print("Connection to userInterface has been established...")
+		checkTime = time.time()
+		
+		while True:
+			data = readUserInterface(connection)
+			elapsed_time = time.time() - checkTime;
+			if data != None:
+				if "InterfaceON" in data:
+					checkTime = time.time();
+				print(data)
+			
+			if elapsed_time > timeout:
+				print("Timeout Occured!, possible connection lost.")
+				break
+			
+			time.sleep(1)
+			print("## DO OTHER STUFF HERE")
+		connection.close()
 
 user_Interface_Thread()
