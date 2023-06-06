@@ -65,6 +65,8 @@ def readUserInterface(client_socket):
 	except :
 		pass
 
+
+
 def afer_computer_ip():
 	# Call the function to retrieve the local IP address
 	local_ip_address = get_local_ip()
@@ -73,6 +75,7 @@ def afer_computer_ip():
 	clients = MACtoIP(target_ip_range)
 	afer_computer_ip = findIP(clients = clients)
 	return afer_computer_ip
+
 
 def user_Interface_Thread():
 	timeout = 10
@@ -110,4 +113,7 @@ def user_Interface_Thread():
 			print("## DO OTHER STUFF HERE")
 		connection.close()
 
-user_Interface_Thread()
+threading.Thread(target = user_Interface_Thread).start()
+
+while(1):
+	pass

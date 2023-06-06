@@ -8,8 +8,8 @@ from IPaddressMap import *
 client.clientInit(connectPhone = 0,connectInterface=1,connectRaspberry=0)
 
 
-#measureTable.initCalibration()
-#measureTable.calibrate()
+measureTable.initCalibration()
+measureTable.calibrate()
 
 subtractBackground.initImageProcessing()
-subtractBackground.imageProcessing(communicate=1,playrate=1, pixel_cm=0)   
+subtractBackground.imageProcessing(communicate=1,playrate=1, pixel_cm=1)   

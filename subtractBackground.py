@@ -156,8 +156,8 @@ def imageProcessing(communicate = 0, playrate=1 , pixel_cm = 1):
             ret , bottomPoint = gimmeBottom(biggestContour)
             if ret == 1 :
                 cv2.circle(currentFrame, bottomPoint, radius = 20 , color=(255,255,255) , thickness=-1)
-                x=bottomPoint[0]//5 
-                y=bottomPoint[1]//5  
+                x=bottomPoint[0]/10
+                y=bottomPoint[1]/10  
 
                 # TO DO: detection'dan önceki pts seç
                     #j = 1
@@ -167,12 +167,12 @@ def imageProcessing(communicate = 0, playrate=1 , pixel_cm = 1):
                     #y = pts[j][1] // 5
                 
                 if pixel_cm :
-                    cursorMatrix = np.array([x*0+1, x, y, x**2, x**2*y, x**2*y**2, y**2, x*y**2, x*y]).T
+                    cursorMatrix = np.array([x*0+1, x, y, x**2, x**2*y, x**2*y**2, y**2, x*y**2, x*y])
                     xLocation = int(np.matmul( g.coefficientX , cursorMatrix ))
                     yLocation = int(np.matmul( g.coefficientY , cursorMatrix ))
                 else:
-                    xLocation = x*5
-                    yLocation = y*5
+                    xLocation = x*10
+                    yLocation = y*10
 
                 if yLocation > 165 :
                     message = "Başarılı:{},{}".format(xLocation,yLocation)

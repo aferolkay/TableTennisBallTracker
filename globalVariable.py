@@ -32,6 +32,6 @@ interfacePORT = 8080
 website = "http://192.168.137.188:4747/video"
 usb = 1
 webcam=0
-file = "resources/tableTennisBall.mp4"
+file = "resources/tableTennisBall2.mp4"
 bufferSize = 40
 camSource = file
