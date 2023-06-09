@@ -9,11 +9,19 @@ mutualSocket = 0
 def clientInit(connectPhone = 1 , connectInterface = 1 , connectRaspberry = 1):
     #Loopback IP address
     g.hostIP = get_local_ip()
-    clients = networkList( get_network_range() )
-
-    g.phoneIP =  findIP( clients , MAC=g.phoneMAC)
-    g.raspberryIP = findIP( clients , MAC=g.raspberryMAC)
-    g.interfaceIP = findIP( clients , MAC=g.interfaceMAC)
+    
+    while ( (g.phoneIP==None and connectPhone) or (g.raspberryIP==None and connectRaspberry) or (g.interfaceIP==None and connectInterface) ):
+        print("Scanning for other devices ...")
+        clients = networkList( get_network_range() )
+        print("networks scan results: {}".format(clients))
+        if(g.phoneIP==None):
+            g.phoneIP =  findIP( clients , MAC=g.phoneMAC)
+        if(g.raspberryIP==None):
+            g.raspberryIP = findIP( clients , MAC=g.raspberryMAC)
+        if(g.interfaceIP==None):
+            g.interfaceIP = findIP( clients , MAC=g.interfaceMAC)
+        print("phoneIP: {} | raspberryIP: {} | interfaceIP: {}".format(g.phoneIP,g.raspberryIP,g.interfaceIP))
+        time.sleep(1)
 
 
     print("Phone IP: {}".format(g.phoneIP))

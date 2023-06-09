@@ -36,7 +36,7 @@ def networkList(target_ip = "192.168.65.1/24"):
     # stack them
     packet = ether/arp
 
-    result = srp(packet, timeout=3, verbose=0)[0]
+    result = srp(packet, timeout=5, verbose=0)[0]
 
     # a list of clients, we will fill this in the upcoming loop
     clients = []

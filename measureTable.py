@@ -73,9 +73,10 @@ def calibrate(test = 1):
     # CALIBRATION WITH USER INPUT
     calibration = True
     while True:
-        cv2.rectangle( img=frame , pt1=(10,10) , pt2=(600,30), color = (255,255,255), thickness = 30 )  # bu fonksiyonda sıkıntı yok
-        cv2.putText(img=frame , text=g.keyPoints[g.iterator],org=(10,30),fontFace=cv2.FONT_HERSHEY_TRIPLEX, fontScale=1, color=(0, 0, 0),thickness=1)
-        cv2.imshow("Calibrate",frame)
+        temp = frame.copy()
+        #cv2.rectangle( img=frame , pt1=(10,10) , pt2=(600,30), color = (255,255,255), thickness = 30 )  # bu fonksiyonda sıkıntı yok
+        cv2.putText(img=temp , text=g.keyPoints[g.iterator],org=(10,30),fontFace=cv2.FONT_HERSHEY_TRIPLEX, fontScale=1, color=(255, 255, 255),thickness=1)
+        cv2.imshow("Calibrate",temp)
         if g.iterator >=10 : 
             break
             #for points in keyPts:
@@ -85,7 +86,7 @@ def calibrate(test = 1):
         if cv2.waitKey(1)  & 0xFF == 27:
             break
     g.coefficientX,g.coefficientY = gradientDescent(g.keyPts) 
-    #cam.release()
+    
     
     if test :
         # TEST WHETHER CALCULATIONS ARE CORRECT
@@ -102,8 +103,10 @@ def calibrate(test = 1):
             cv2.imshow("Calibrate",frame)
             if cv2.waitKey(10)  & 0xFF == 27:
                 break
+    cam.release()
     cv2.destroyAllWindows()
-
+    print("Calibration done! Switching to image processing")
+    sleep(1)
 
 
 
